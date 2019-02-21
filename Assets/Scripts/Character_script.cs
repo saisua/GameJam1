@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterMovement : MonoBehaviour {
-
+public class Character_script : MonoBehaviour {
+    //Bon dia
     //Movement settings
     [Header("Movement axis")]
     public Vector3 movement;
@@ -13,8 +13,11 @@ public class CharacterMovement : MonoBehaviour {
     [Header("Jumping axis")]
     public Vector3 jump;
     public int max_jumps = 1;
-    public int jumps = 0;
-    public bool isGrounded = true;
+    public bool in_air_movement = false;
+    public float jump_speed;
+
+    private int jumps = 0;
+    private bool isGrounded = true;
 
     //public Animator animator;
     
@@ -61,13 +64,18 @@ public class CharacterMovement : MonoBehaviour {
         {
             jumps = 0;
         }
-        if (!IsDead) Move();
+        if (!IsDead && (in_air_movement || isGrounded)) Move();
     }
 
     // Moves the player based on the movement and directions Vector3 info
     void Move()
     {
-        transform.Translate(new Vector3(Input.GetAxisRaw(directions[0])*movement[0], Input.GetAxisRaw(directions[1  ]) * movement[1], Input.GetAxisRaw(directions[2]) * movement[2]));
+        transform.Translate(new Vector3(Input.GetAxisRaw(directions[0])*movement[0],
+                                        Input.GetAxisRaw(directions[1]) * movement[1],
+                                        Input.GetAxisRaw(directions[2]) * movement[2]));
+        rigidBody.velocity = new Vector3(rigidBody.velocity.x + Input.GetAxisRaw(directions[0]) * movement[0] * jump_speed,
+                                        rigidBody.velocity.y + Input.GetAxisRaw(directions[1]) * movement[1] * jump_speed,
+                                        rigidBody.velocity.z + Input.GetAxisRaw(directions[2]) * movement[2] * jump_speed);
         transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, 1);
     }
 
@@ -79,7 +87,7 @@ public class CharacterMovement : MonoBehaviour {
         if (jumps < max_jumps)
         {
             //animator.SetBool("IsJumping", true);
-            rigidBody.AddRelativeForce(jump, ForceMode.Impulse);
+            rigidBody.AddRelativeForce(new Vector3(jump[0] + rigidBody.velocity.x, jump[1] + rigidBody.velocity.y, jump[2] + rigidBody.velocity.z), ForceMode.Impulse);
             isGrounded = false;
             test = true;
             jumps++;
